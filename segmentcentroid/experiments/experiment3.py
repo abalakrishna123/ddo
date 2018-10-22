@@ -88,6 +88,3 @@ def runPolicies(demonstrations=100,
             
         g.visualizePolicy(policy_hash, trans_hash, blank=True, filename="resources/results/exp3-policy"+str(i)+".png")
 
-
-
-

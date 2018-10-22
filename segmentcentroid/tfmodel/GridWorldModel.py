@@ -21,11 +21,13 @@ class GridWorldModel(TFSeparableModel):
     def createPolicyNetwork(self):
 
         #return multiLayerPerceptron(self.statedim[0], self.actiondim[0])
-        return gridWorldTabular(10, 20, 4)
+        # return gridWorldTabular(10, 20, 4)
+        return gridWorldTabular(self.statedim[0], self.statedim[1], 4)
 
     def createTransitionNetwork(self):
 
-        return gridWorldTabular(10, 20, 2)
+        # return gridWorldTabular(10, 20, 2)
+        return gridWorldTabular(self.statedim[0], self.statedim[1], 2)
 
         
 

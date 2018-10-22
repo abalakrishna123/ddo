@@ -5,14 +5,16 @@ from segmentcentroid.tfmodel.GridWorldModel import GridWorldModel
 import tensorflow as tf
 import copy
 
-gmap = np.loadtxt('resources/GridWorldMaps/experiment1.txt', dtype=np.uint8)
+gmap = np.loadtxt('resources/GridWorldMaps/experiment3.txt', dtype=np.uint8)
 
-m  = GridWorldModel(2, statedim=(10,20))
+m  = GridWorldModel(3, statedim=(gmap.shape[0],gmap.shape[1]))
 
-demonstrations = 50
+demonstrations = 200
 
 full_traj = []
 vis_traj = []
+
+print(gmap.shape)
 
 for i in range(demonstrations):
     print("Traj",i)
@@ -29,7 +31,7 @@ for i in range(demonstrations):
     for t in traj:
         a = np.zeros(shape=(4,1))
 
-        s = np.zeros(shape=(10,20))
+        s = np.zeros(shape=(gmap.shape[0],gmap.shape[1]))
 
         a[t[1]] = 1
 
@@ -62,7 +64,7 @@ for i in range(m.k):
 
     for s in states:
 
-        t = np.zeros(shape=(10,20))
+        t = np.zeros(shape=(gmap.shape[0],gmap.shape[1]))
 
         t[s[0],s[1]] = 1
         #t[2:4,0] = np.argwhere(g.map == g.START)[0]
@@ -82,4 +84,4 @@ for i in range(m.k):
         #print("Transition: ",m.evalpsi(i, [(t, actions[1,:])]), t)
         trans_hash[s] = np.ravel(m.evalpsi(i, [(t, actions[1,:])]))
 
-    g.visualizePolicy(policy_hash, trans_hash, blank=True, filename="resources/results/jeb"+str(i)+".png")
+    g.visualizePolicy(policy_hash, trans_hash, blank=True, filename="resources/results/exp_stuff"+str(i)+".png")
