@@ -9,7 +9,7 @@ gmap = np.loadtxt('resources/GridWorldMaps/experiment3.txt', dtype=np.uint8)
 
 m  = GridWorldModel(3, statedim=(gmap.shape[0],gmap.shape[1]))
 
-demonstrations = 200
+demonstrations = 100
 
 full_traj = []
 vis_traj = []
@@ -47,9 +47,8 @@ for i in range(demonstrations):
 m.sess.run(tf.initialize_all_variables())
 
 with tf.variable_scope("optimizer"):
-    opt = tf.train.GradientDescentOptimizer(learning_rate=10)
-
-    m.train(opt, full_traj, 10000, 0)
+    opt = tf.train.GradientDescentOptimizer(learning_rate=1e-3)
+    m.train(opt, full_traj, 100, 1000)
 
 actions = np.eye(4)
 
