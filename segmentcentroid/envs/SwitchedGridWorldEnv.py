@@ -12,7 +12,16 @@ This class defines an abstract environment,
 all environments derive from this class
 """
 
-class GridWorldEnv(AbstractEnv):
+# Modify as Desired
+MODES = {
+    0: np.array([[-1, 0], [+1, 0], [0, -1], [0, +1]]),
+    1: np.array([[+1, 0], [-1, 0], [0, +1], [0, -1]]),
+    2: np.array([[0, -1], [0, +1], [-1, 0], [+1, 0]]),
+    3: np.array([[0, +1], [0, -1], [+1, 0], [-1, 0]])
+}
+
+# todo{bthananjeyan}: inheritance
+class SwitchedGridWorldEnv(AbstractEnv):
 
 
     ##All of the constant variables
@@ -20,16 +29,17 @@ class GridWorldEnv(AbstractEnv):
     # Constants in the map
     EMPTY, BLOCKED, START, GOAL, PIT, AGENT = range(6) #codes
 
-    ACTIONS = np.array([[-1, 0], [+1, 0], [0, -1], [0, +1]])
     actions_num = 4
     GOAL_REWARD = +1
     PIT_REWARD = -1
     STEP_REWARD = -.001
 
-    #takes in a 2d integer map coded by the first line of comments
-    def __init__(self, gmap, noise=0.1):
+    # takes in two 2d integer maps coded by the first line of comments
+    # MMAP maps square to mode in MODES
+    def __init__(self, gmap, mmap, noise=0.1):
 
         self.map = gmap
+        self.mode_map = mmap
         self.start_state = np.argwhere(self.map == self.START)[0]
         self.ROWS, self.COLS = np.shape(self.map)
         self.statespace_limits = np.array(
@@ -98,8 +108,10 @@ class GridWorldEnv(AbstractEnv):
         if s is None:
             s = self.state
         possibleA = np.array([], np.uint8)
+        modes = self.mode_map[s]
+        actions = MODES[mode]
         for a in range(self.actions_num):
-            ns = s + self.ACTIONS[a]
+            ns = s + actions[a]
             if (
                     ns[0] < 0 or ns[0] == self.ROWS or
                     ns[1] < 0 or ns[1] == self.COLS or
@@ -147,7 +159,7 @@ class GridWorldEnv(AbstractEnv):
             a = np.random.choice(self.possibleActions())
 
         # Take action
-        ns = self.state + self.ACTIONS[a]
+        ns = self.state + MODES[self.mode_map[self.state]][a]
 
         # Check bounds on state values
         if (ns[0] < 0 or ns[0] == self.ROWS or
@@ -218,12 +230,14 @@ class GridWorldEnv(AbstractEnv):
 
             for a in possibleActions:
                 dynamics[(s,a)] = []
-                expected_step = (s[0] + self.ACTIONS[a][0], s[1] + self.ACTIONS[a][1])
+                expected_step = (s[0] + MODES[self.mode_map[self.state]][a][0], s[1] \
+                        + MODES[self.mode_map[self.state]][a])
                 dynamics[(s,a)].append( (expected_step, 1-self.NOISE))
 
                 for ap in possibleActions:
                     if ap != a:
-                        expected_step = (s[0] + self.ACTIONS[ap][0], s[1] + self.ACTIONS[ap][1])
+                        expected_step = (s[0] + MODES[self.mode_map[self.state]][ap][0], s[1] \
+                                + MODES[self.mode_map[self.state]][ap][1])
                         dynamics[(s,a)].append( (expected_step, self.NOISE/(len(possibleActions)-1)))                        
 
         return dynamics
@@ -258,7 +272,7 @@ class GridWorldEnv(AbstractEnv):
                self.map[state[0], state[1]] == self.BLOCKED:
                 continue
 
-            action = self.ACTIONS[policy[state]]
+            action = MODES[self.mode_map[self.state]][policy[state]]
 
             alpha = transitions[state]
 
@@ -308,7 +322,7 @@ class GridWorldEnv(AbstractEnv):
             if self.map[state[0], state[1]] == self.BLOCKED:
                 continue
 
-            action = self.ACTIONS[actioni]
+            action = MODES[self.mode_map[self.state]][actioni]
             dx = action[0,0]*0.5
             dy = action[0,1]*0.5
             ax.arrow(state[1], state[0], dy, dx, head_width=0.1, fc=c, ec=c)
@@ -318,10 +332,3 @@ class GridWorldEnv(AbstractEnv):
         else:
             plt.savefig(filename)
 
-
-
-
-
-        
-
-     
