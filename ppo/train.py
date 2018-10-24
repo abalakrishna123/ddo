@@ -3,11 +3,13 @@ import multiprocessing
 import argparse
 import cv2
 import gym
+from linear_system import *
 import copy
 import os
 import time
 import atari_constants
 import box_constants
+import linear_constants
 import numpy as np
 import tensorflow as tf
 
@@ -37,35 +39,51 @@ def main():
     logdir = os.path.join(os.path.dirname(__file__), 'logs/' + args.logdir)
 
     env_name = args.env
-    tmp_env = gym.make(env_name)
-    is_atari = len(tmp_env.observation_space.shape) != 1
-    if not is_atari:
-        observation_space = tmp_env.observation_space
-        constants = box_constants
-        if isinstance(tmp_env.action_space, gym.spaces.Box):
-            num_actions = tmp_env.action_space.shape[0]
+
+    if str(env_name) !="linear_system":
+        tmp_env = gym.make(env_name)
+        is_atari = len(tmp_env.observation_space.shape) != 1
+        if not is_atari:
+            observation_space = tmp_env.observation_space
+            constants = box_constants
+            if isinstance(tmp_env.action_space, gym.spaces.Box):
+                num_actions = tmp_env.action_space.shape[0]
+            else:
+                num_actions = tmp_env.action_space.n
+            state_shape = [observation_space.shape[0], constants.STATE_WINDOW]
+            state_preprocess = lambda s: s
+            reward_preprocess = lambda r: r / 10.0
+            # (window_size, dim) -> (dim, window_size)
+            phi = lambda s: np.transpose(s, [1, 0])
         else:
+            constants = atari_constants
             num_actions = tmp_env.action_space.n
-        state_shape = [observation_space.shape[0], constants.STATE_WINDOW]
+            state_shape = constants.STATE_SHAPE + [constants.STATE_WINDOW]
+            def state_preprocess(state):
+                state = atari_preprocess(state, constants.STATE_SHAPE)
+                state = np.array(state, dtype=np.float32)
+                return state / 255.0
+            reward_preprocess = lambda r: np.clip(r, -1.0, 1.0)
+            # (window_size, H, W) -> (H, W, window_size)
+            phi = lambda s: np.transpose(s, [1, 2, 0])
+    else:
+        constants = linear_constants
+        tmp_env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, np.array([10]))
+        num_actions = tmp_env.action_space.shape[0]
+        state_shape = [tmp_env.observation_space.shape[0], constants.STATE_WINDOW]
         state_preprocess = lambda s: s
-        reward_preprocess = lambda r: r / 10.0
+        reward_preprocess = lambda r: r
         # (window_size, dim) -> (dim, window_size)
         phi = lambda s: np.transpose(s, [1, 0])
-    else:
-        constants = atari_constants
-        num_actions = tmp_env.action_space.n
-        state_shape = constants.STATE_SHAPE + [constants.STATE_WINDOW]
-        def state_preprocess(state):
-            state = atari_preprocess(state, constants.STATE_SHAPE)
-            state = np.array(state, dtype=np.float32)
-            return state / 255.0
-        reward_preprocess = lambda r: np.clip(r, -1.0, 1.0)
-        # (window_size, H, W) -> (H, W, window_size)
-        phi = lambda s: np.transpose(s, [1, 2, 0])
 
-    # flag of continuous action space
-    continuous = isinstance(tmp_env.action_space, gym.spaces.Box)
-    upper_bound = tmp_env.action_space.high if continuous else None
+    if str(env_name) != "linear_system":
+        # flag of continuous action space
+        continuous = isinstance(tmp_env.action_space, gym.spaces.Box)
+        upper_bound = tmp_env.action_space.high if continuous else None
+    else:
+        # get continuous and upper bound here
+        continuous = True
+        upper_bound = tmp_env.action_high
 
     # save settings
     dump_constants(constants, os.path.join(outdir, 'constants.json'))
@@ -115,12 +133,17 @@ def main():
     # create environemtns
     envs = []
     for i in range(constants.ACTORS):
-        env = gym.make(args.env)
-        env.seed(constants.RANDOM_SEED)
-        if is_atari:
-            env = NoopResetEnv(env, noop_max=30)
-            env = MaxAndSkipEnv(env)
-            env = EpisodicLifeEnv(env)
+
+        if str(env_name) !="linear_system":
+            env = gym.make(args.env)
+            env.seed(constants.RANDOM_SEED)
+            if is_atari:
+                env = NoopResetEnv(env, noop_max=30)
+                env = MaxAndSkipEnv(env)
+                env = EpisodicLifeEnv(env)
+        else:
+            env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, np.array([10]))
+
         wrapped_env = EnvWrapper(
             env,
             r_preprocess=reward_preprocess,
