@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.integrate import odeint
+import random
+random.seed(42)
 
 class Env(object):
 
@@ -28,7 +30,9 @@ class SpaceSwitchedLinearSystemEnv(Env):
 		self.xdim = xdim
 		self.udim = udim
 		self.As = [np.eye(xdim) * (0.1 * i-1) for i in range(num_switch)]
-		self.B = np.random.randn(xdim, udim)
+		self.B = (1/(xdim * udim) ) * ( (np.arange(xdim * udim) + 1).reshape((xdim, udim)) )
+		# self.B = np.random.randn(xdim, udim)
+		# print(self.B)
 		self.P = np.eye(xdim)
 		self.Q = np.eye(udim)
 		self.T = horizon
@@ -177,6 +181,6 @@ if __name__ == '__main__':
 		# x, c, done = env.step(np.array([0.8]))
 		x, c, done, info = env.step(np.random.randn(1))
 		xs.append(x)
-		print(c)
+		# print(c)
 	plt.plot(xs)
 	plt.show()
