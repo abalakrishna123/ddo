@@ -199,7 +199,7 @@ class GridWorldGasEnv(AbstractEnv):
     def rollout(self, policy):
         trajectory = []
 
-        while not self.terminated:
+        while not self.termination:
             self.play(policy(self.state))
             trajectory.append(self.getState())
 
