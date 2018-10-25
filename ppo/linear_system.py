@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.integrate import odeint
+import random
+random.seed(42)
 
 class Env(object):
 
@@ -21,19 +23,29 @@ class SpaceSwitchedLinearSystemEnv(Env):
 	Want to navigate to the origin.
 	"""
 
-	def __init__(self, num_switch, switch_int, horizon, xdim, udim, x0):
+	def __init__(self, num_switch, switch_int, horizon, xdim, udim, random_start, x0):
 		self.num_switch = num_switch
 		self.switch_int = switch_int
+		self.random_start = random_start
 		self.xdim = xdim
 		self.udim = udim
-		self.As = [np.eye(xdim) * (0.1 * i+1) for i in range(num_switch)]
-		self.B = np.random.randn(xdim, udim)
+		self.As = [np.eye(xdim) * (0.1 * i-1) for i in range(num_switch)]
+		self.B = (1/(xdim * udim) ) * ( (np.arange(xdim * udim) + 1).reshape((xdim, udim)) )
+		# self.B = np.random.randn(xdim, udim)
+		# print(self.B)
 		self.P = np.eye(xdim)
 		self.Q = np.eye(udim)
 		self.T = horizon
 		self.x = None
 		self.t = None
-		self.x0 = x0
+		# Generate a random x0 with norm between -num_switch * switch_int and num_switch * switch_int
+		# [0, 1] --> (val) * (high - low) + low 
+		if self.random_start:
+			rand_point = np.random.random(self.xdim)
+			rand_norm = np.random.random() * (2 * self.num_switch * self.switch_int) - self.num_switch * self.switch_int
+			self.x0 = rand_norm * (rand_point/np.linalg.norm(rand_point) )
+		else:
+			self.x0 = x0
 		self._episode_cost = 0
 		self.check_valid_system()
 		# print(self.P)
@@ -47,9 +59,15 @@ class SpaceSwitchedLinearSystemEnv(Env):
 		assert np.all(np.linalg.eigvals(self.Q) >= 0) and np.allclose(self.Q, self.Q.T, atol=1e-8)
 
 	def reset(self):
+		# print("Episode Cost: " + str(self.episode_cost) )
 		self._episode_cost = 0
 		self.t = 0
-		self.x = self.x0
+		if self.random_start:
+			rand_point = np.random.random(self.xdim)
+			rand_norm = np.random.random() * (2 * self.num_switch * self.switch_int) - self.num_switch * self.switch_int
+			self.x = rand_norm * (rand_point/np.linalg.norm(rand_point) )
+		else:
+			self.x = self.x0
 		return self.x
 
 	def step(self, u):
@@ -155,14 +173,14 @@ class TimeSwitchedLinearSystemEnv(Env):
 
 if __name__ == '__main__':
 	# env = TimeSwitchedLinearSystemEnv(2, 25, 1, 1, np.array([10]))
-	env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, np.array([10]))
+	# env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, x0=np.array([10]))
+	env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, False, np.array([10]))
 	xs = []
 	x = env.reset()
 	for i in range(50):
-		print(x)
 		# x, c, done = env.step(np.array([0.8]))
-		x, c, done = env.step(np.random.randn(1))
+		x, c, done, info = env.step(np.random.randn(1))
 		xs.append(x)
-	print(xs)
+		# print(c)
 	plt.plot(xs)
 	plt.show()

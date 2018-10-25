@@ -68,7 +68,7 @@ def main():
             phi = lambda s: np.transpose(s, [1, 2, 0])
     else:
         constants = linear_constants
-        tmp_env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, np.array([10]))
+        tmp_env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, False, np.array([10]))
         num_actions = tmp_env.action_space.shape[0]
         state_shape = [tmp_env.observation_space.shape[0], constants.STATE_WINDOW]
         state_preprocess = lambda s: s
@@ -142,7 +142,7 @@ def main():
                 env = MaxAndSkipEnv(env)
                 env = EpisodicLifeEnv(env)
         else:
-            env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, np.array([10]))
+            env = tmp_env
 
         wrapped_env = EnvWrapper(
             env,
@@ -163,6 +163,9 @@ def main():
         if global_step % 10 ** 6 == 0:
             path = os.path.join(outdir, 'model.ckpt')
             saver.save(sess, path, global_step=global_step)
+
+    print("DEMO")
+    print(args.demo)
 
     trainer = BatchTrainer(
         env=batch_env,
