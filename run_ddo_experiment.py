@@ -55,7 +55,7 @@ with tf.variable_scope("optimizer"):
 actions = np.eye(4)
 
 
-g = GridWorldEnv(copy.copy(gmap), noise=0.1)
+g = SwitchedGridWorldEnv(copy.copy(gmap), copy.copy(mmap) noise=0.1)
 g.generateRandomStartGoal()
 
 for i in range(m.k):
