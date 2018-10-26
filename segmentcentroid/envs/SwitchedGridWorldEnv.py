@@ -51,7 +51,7 @@ class SwitchedGridWorldEnv(AbstractEnv):
 
         #print(self.start_state, np.argwhere(self.map == self.GOAL)[0])
 
-        super(GridWorldEnv, self).__init__()
+        super(SwitchedGridWorldEnv, self).__init__()
 
 
     def generateRandomStartGoal(self, pstart=None, pgoal=None):
@@ -108,7 +108,7 @@ class SwitchedGridWorldEnv(AbstractEnv):
         if s is None:
             s = self.state
         possibleA = np.array([], np.uint8)
-        modes = self.mode_map[s]
+        mode = self.mode_map[s[0], s[1]]
         actions = MODES[mode]
         for a in range(self.actions_num):
             ns = s + actions[a]
@@ -159,7 +159,7 @@ class SwitchedGridWorldEnv(AbstractEnv):
             a = np.random.choice(self.possibleActions())
 
         # Take action
-        ns = self.state + MODES[self.mode_map[self.state]][a]
+        ns = self.state + MODES[self.mode_map[self.state[0], self.state[1]]][a]
 
         # Check bounds on state values
         if (ns[0] < 0 or ns[0] == self.ROWS or
@@ -230,14 +230,14 @@ class SwitchedGridWorldEnv(AbstractEnv):
 
             for a in possibleActions:
                 dynamics[(s,a)] = []
-                expected_step = (s[0] + MODES[self.mode_map[self.state]][a][0], s[1] \
-                        + MODES[self.mode_map[self.state]][a])
+                expected_step = (s[0] + MODES[self.mode_map[s]][a][0], s[1] \
+                        + MODES[self.mode_map[s]][a][1])
                 dynamics[(s,a)].append( (expected_step, 1-self.NOISE))
 
                 for ap in possibleActions:
                     if ap != a:
-                        expected_step = (s[0] + MODES[self.mode_map[self.state]][ap][0], s[1] \
-                                + MODES[self.mode_map[self.state]][ap][1])
+                        expected_step = (s[0] + MODES[self.mode_map[s]][ap][0], s[1] \
+                                + MODES[self.mode_map[s]][ap][1])
                         dynamics[(s,a)].append( (expected_step, self.NOISE/(len(possibleActions)-1)))                        
 
         return dynamics

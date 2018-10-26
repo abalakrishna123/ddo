@@ -1,11 +1,13 @@
 import numpy as np
 from segmentcentroid.envs.GridWorldEnv import GridWorldEnv
+from segmentcentroid.envs.SwitchedGridWorldEnv import SwitchedGridWorldEnv
 from segmentcentroid.planner.value_iteration import ValueIterationPlanner
 from segmentcentroid.tfmodel.GridWorldModel import GridWorldModel
 import tensorflow as tf
 import copy
 
-gmap = np.loadtxt('resources/GridWorldMaps/experiment3.txt', dtype=np.uint8)
+gmap = np.loadtxt('resources/GridWorldMaps/11x11-Rooms-r1.txt', dtype=np.uint8)
+mmap = np.loadtxt('resources/GridWorldMaps/11x11-Rooms-Modes.txt', dtype=np.uint8)
 
 m  = GridWorldModel(3, statedim=(gmap.shape[0],gmap.shape[1]))
 
@@ -18,7 +20,7 @@ print(gmap.shape)
 
 for i in range(demonstrations):
     print("Traj",i)
-    g = GridWorldEnv(copy.copy(gmap), noise=0.3)
+    g = SwitchedGridWorldEnv(copy.copy(gmap), copy.copy(mmap), noise=0.3)
 
     v = ValueIterationPlanner(g)
     traj = v.plan(max_depth=100)
@@ -53,7 +55,7 @@ with tf.variable_scope("optimizer"):
 actions = np.eye(4)
 
 
-g = GridWorldEnv(copy.copy(gmap), noise=0.1)
+g = SwitchedGridWorldEnv(copy.copy(gmap), copy.copy(mmap), noise=0.1)
 g.generateRandomStartGoal()
 
 for i in range(m.k):
