@@ -30,6 +30,7 @@ class SpaceSwitchedLinearSystemEnv(Env):
 		self.xdim = xdim
 		self.udim = udim
 		# self.As = [np.eye(xdim) * (0.1 * i-1) for i in range(num_switch)]
+		# self.As = [np.eye(xdim) * (0.1*i + 1) for i in range(num_switch-1)] + [np.eye(xdim) * (0.1*num_switch - 1)]
 		self.As = [np.eye(xdim) * (0.1*i + 1) for i in range(num_switch-1)] + [np.eye(xdim) * (0.1*num_switch - 1)]
 		print("As")
 		print(self.As)

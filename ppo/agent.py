@@ -131,7 +131,7 @@ class Agent:
                 self.ep_count += 1
                 self.all_experience.append(self.episode_experience)
                 self.episode_experience = []
-                if self.ep_count % 100 == 0:
+                if self.ep_count % 1000 == 0:
                     pickle.dump(self.all_experience, open("test_trajectories.p", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
                 self.episode_experience.append(np.array([obs_t[0], action_t[0]]))
             else:

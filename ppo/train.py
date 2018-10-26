@@ -68,7 +68,8 @@ def main():
             phi = lambda s: np.transpose(s, [1, 2, 0])
     else:
         constants = linear_constants
-        tmp_env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, False, np.array([100]))
+        # tmp_env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, False, np.array([100]))
+        tmp_env = SpaceSwitchedLinearSystemEnv(4, 25, 50, 1, 1, False, np.array([100]))
         num_actions = tmp_env.action_space.shape[0]
         state_shape = [tmp_env.observation_space.shape[0], constants.STATE_WINDOW]
         state_preprocess = lambda s: s
