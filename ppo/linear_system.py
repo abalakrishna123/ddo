@@ -29,7 +29,10 @@ class SpaceSwitchedLinearSystemEnv(Env):
 		self.random_start = random_start
 		self.xdim = xdim
 		self.udim = udim
-		self.As = [np.eye(xdim) * (0.1 * i-1) for i in range(num_switch)]
+		# self.As = [np.eye(xdim) * (0.1 * i-1) for i in range(num_switch)]
+		self.As = [np.eye(xdim) * (0.1*i + 1) for i in range(num_switch-1)] + [np.eye(xdim) * (0.1*num_switch - 1)]
+		print("As")
+		print(self.As)
 		self.B = (1/(xdim * udim) ) * ( (np.arange(xdim * udim) + 1).reshape((xdim, udim)) )
 		# self.B = np.random.randn(xdim, udim)
 		# print(self.B)
@@ -174,12 +177,12 @@ class TimeSwitchedLinearSystemEnv(Env):
 if __name__ == '__main__':
 	# env = TimeSwitchedLinearSystemEnv(2, 25, 1, 1, np.array([10]))
 	# env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, x0=np.array([10]))
-	env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, False, np.array([10]))
+	env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, False, np.array([100]))
 	xs = []
 	x = env.reset()
 	for i in range(50):
 		# x, c, done = env.step(np.array([0.8]))
-		x, c, done, info = env.step(np.random.randn(1))
+		x, c, done, info = env.step(np.array([0]))
 		xs.append(x)
 		# print(c)
 	plt.plot(xs)

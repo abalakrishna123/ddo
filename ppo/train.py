@@ -68,7 +68,7 @@ def main():
             phi = lambda s: np.transpose(s, [1, 2, 0])
     else:
         constants = linear_constants
-        tmp_env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, False, np.array([10]))
+        tmp_env = SpaceSwitchedLinearSystemEnv(3, 25, 50, 1, 1, False, np.array([100]))
         num_actions = tmp_env.action_space.shape[0]
         state_shape = [tmp_env.observation_space.shape[0], constants.STATE_WINDOW]
         state_preprocess = lambda s: s
@@ -123,7 +123,8 @@ def main():
         phi=phi,
         use_lstm=constants.LSTM,
         continuous=continuous,
-        upper_bound=upper_bound
+        upper_bound=upper_bound,
+        training=not args.demo
     )
 
     saver = tf.train.Saver()
@@ -152,7 +153,8 @@ def main():
         envs.append(wrapped_env)
     batch_env = BatchEnvWrapper(envs)
 
-    sess.run(tf.global_variables_initializer())
+    if not args.demo:
+        sess.run(tf.global_variables_initializer())
 
     summary_writer = tf.summary.FileWriter(logdir, sess.graph)
     logger = TfBoardLogger(summary_writer)
