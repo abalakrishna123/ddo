@@ -4,6 +4,7 @@ import tensorflow as tf
 from rollout import Rollout
 from build_graph import build_train
 from rlsaber.util import compute_returns, compute_gae
+import pickle
 
 
 class Agent:
@@ -27,7 +28,8 @@ class Agent:
                  use_lstm=False,
                  continuous=False,
                  upper_bound=1.0,
-                 name='ppo'):
+                 name='ppo',
+                 training=True):
         self.num_actions = num_actions
         self.gamma = gamma
         self.lam = lam
@@ -44,6 +46,9 @@ class Agent:
         self.use_lstm = use_lstm
         self.continuous = continuous
         self.upper_bound = upper_bound
+        self.episode_experience = []
+        self.all_experience = []
+        self.ep_count = 0
 
         self._act, self._train = build_train(
             model=model,
@@ -68,6 +73,7 @@ class Agent:
                               log_probs=None, done=None, rnn_state=None)
         self.rollouts = [Rollout() for _ in range(nenvs)]
         self.t = 0
+        self.training = training
 
     def act(self, obs_t, reward_t, done_t, training=True):
         # change state shape to WHC
@@ -114,12 +120,31 @@ class Agent:
         self.state_tm1['done'] = done_t
         self.state_tm1['rnn_state'] = rnn_state_t
 
+        # print("action")
+        # print(action_t)
+
+        # print dm
+        # self.episode_experience.append(np.array([obs_t, action_t]) )
+
+        if not self.training:
+            if done_t[0]:
+                self.ep_count += 1
+                self.all_experience.append(self.episode_experience)
+                self.episode_experience = []
+                if self.ep_count % 1000 == 0:
+                    pickle.dump(self.all_experience, open("test_trajectories.p", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+                self.episode_experience.append(np.array([obs_t[0], action_t[0]]))
+            else:
+                self.episode_experience.append(np.array([obs_t[0], action_t[0]]))
+
         if self.continuous:
             return action_t * self.upper_bound
         else:
             return action_t
 
     def train(self, bootstrap_values):
+        if not self.training:
+            return
         # rollout trajectories
         trajectories = self._rollout_trajectories()
         obs_t = trajectories['obs_t']
