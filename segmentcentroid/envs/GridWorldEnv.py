@@ -267,7 +267,7 @@ class GridWorldEnv(AbstractEnv):
             dx = action[0]*0.5
             dy = action[1]*0.5
 
-            ax.arrow(state[1], state[0], dy, dx, head_width=0.1, fc=(alpha,0,0), ec=(alpha,0,0))
+            ax.arrow(state[1], state[0], dy, dx, head_width=0.1, fc=(1,0,0), ec=(100,0,0))
 
 
         if filename == None:

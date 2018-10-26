@@ -272,7 +272,7 @@ class SwitchedGridWorldEnv(AbstractEnv):
                self.map[state[0], state[1]] == self.BLOCKED:
                 continue
 
-            action = MODES[self.mode_map[self.state]][policy[state]]
+            action = MODES[self.mode_map[state[0], state[1]]][policy[state]]
 
             alpha = transitions[state]
 
@@ -322,7 +322,7 @@ class SwitchedGridWorldEnv(AbstractEnv):
             if self.map[state[0], state[1]] == self.BLOCKED:
                 continue
 
-            action = MODES[self.mode_map[self.state]][actioni]
+            action = MODES[self.mode_map[state[0], state[1]]][actioni]
             dx = action[0,0]*0.5
             dy = action[0,1]*0.5
             ax.arrow(state[1], state[0], dy, dx, head_width=0.1, fc=c, ec=c)
