@@ -12,7 +12,10 @@ This class defines an abstract environment,
 all environments derive from this class
 """
 
-# Modify as Desired
+# Modify as Desired, essentially at any given point, an action,
+# given by a \in [0, 1, 2, 3] does something different based on which
+# mode \in [0, 1, 2, 3] you are in. Thus, you need to learn different
+# policies for different sections of the grid-world
 MODES = {
     0: np.array([[-1, 0], [+1, 0], [0, -1], [0, +1]]),
     1: np.array([[+1, 0], [-1, 0], [0, +1], [0, -1]]),
@@ -244,17 +247,25 @@ class SwitchedGridWorldEnv(AbstractEnv):
 
     ###visualization routines
     def visualizePolicy(self, policy, transitions=None, blank=False, filename=None):
+        # policy here is just a dictionary s --> a
+        # transitions here is a dictionary s --> transition prob
         cmap = colors.ListedColormap(['w', '.75', 'b', 'g', 'r', 'k'], 'GridWorld')
 
         plt.figure()
 
         newmap = copy.copy(self.map)
 
+        print("MAP START")
+        print(cmap)
+
         if blank:
             start = np.argwhere(self.map == self.START)[0]
             goal = np.argwhere(self.map == self.GOAL)[0]
             newmap[start[0], start[1]] = self.EMPTY
             newmap[goal[0], goal[1]] = self.EMPTY
+
+        print(newmap)
+        print("MAP END")
 
         #show gw
         plt.imshow(newmap, 
@@ -267,7 +278,6 @@ class SwitchedGridWorldEnv(AbstractEnv):
 
         #show policy
         for state in policy:
-            
             if policy[state] == None or \
                self.map[state[0], state[1]] == self.BLOCKED:
                 continue
@@ -277,6 +287,7 @@ class SwitchedGridWorldEnv(AbstractEnv):
             alpha = transitions[state]
 
             print(alpha, state)
+            # alpha is a measure of probability of option transition at a given state...I think
 
             dx = action[0]*0.5
             dy = action[1]*0.5

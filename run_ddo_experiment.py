@@ -63,6 +63,11 @@ for i in range(m.k):
     policy_hash = {}
     trans_hash = {}
 
+    # For each option, making a table of the transition probabilities
+    # and actions for each state in the gridworld to understand learned options
+    # For each option:
+    # policy_hash maps states to actions, trans_hash maps states to option termination
+    # probabilities, for THAT option.
     for s in states:
 
         t = np.zeros(shape=(gmap.shape[0],gmap.shape[1]))
@@ -82,7 +87,6 @@ for i in range(m.k):
 
         policy_hash[s] = action
 
-        #print("Transition: ",m.evalpsi(i, [(t, actions[1,:])]), t)
         trans_hash[s] = np.ravel(m.evalpsi(i, [(t, actions[1,:])]))
 
     g.visualizePolicy(policy_hash, trans_hash, blank=True, filename="resources/results/exp_stuff"+str(i)+".png")
