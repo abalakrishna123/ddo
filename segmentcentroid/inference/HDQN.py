@@ -180,17 +180,18 @@ class HDQN(object):
 
             #chosen_action = self.env.possibleActions(self.env.state)[np.argmax(l)]
 
-            l = np.array([ np.ravel(self.model.evalpi(i, [(self.env.state, actions[j,:])] ))  for j in range(self.actiondim)]).reshape(self.actiondim)
+            # l = np.array([ np.ravel(self.model.evalpi(i, [(self.env.state, actions[j,:])] ))  for j in range(self.actiondim)]).reshape(self.actiondim)
+            l = np.array([ np.ravel(self.model.evalpi(i, [(self.observe(self.env.state), actions[j,:])] ))  for j in range(self.actiondim)]).reshape(self.actiondim) # ASHWIN CHANGED THIS
             l = np.abs(l)/np.sum(l)
-
             chosen_action = np.random.choice(np.arange(0, self.actiondim), size=1, p=l)
-
+            # ASHWIN: Ok this makes sense, choosing action from the distribution given by l (which computes prob of actions for each primitive)
             
             reward = self.env.play(chosen_action)
 
             observation = self.observe(self.env.state)
 
-            termination = (np.random.rand() < np.ravel(self.model.evalpsi(i, [(self.env.state, actions[1,:])])))
+            # termination = (np.random.rand() < np.ravel(self.model.evalpsi(i, [(self.env.state, actions[1,:])])))
+            termination = (np.random.rand() < np.ravel(self.model.evalpsi(i, [(self.observe(self.env.state), actions[1,:])]))) # ASHWIN CHANGED THIS
 
             done = self.env.termination or termination or remaining <= 0
 
@@ -229,9 +230,11 @@ class HDQN(object):
 
             while remaining_time > 0:
 
+                # ASHWIN: There needs to be a check here to ensure that the action returned is actually possible!!!
+                # Ideally, every action should be possible, and you simply do nothing if try to go into a wall or something
                 action = self.argmax(observation)
                 action = self.policy(action, epsilon)
-                print("applied",action, remaining_time)
+                print("applied",action, remaining_time)     
 
                 if action >= self.actiondim:
                   #print(action)

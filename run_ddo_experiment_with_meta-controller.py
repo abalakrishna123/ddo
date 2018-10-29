@@ -3,6 +3,7 @@ from segmentcentroid.envs.GridWorldEnv import GridWorldEnv
 from segmentcentroid.envs.SwitchedGridWorldEnv import SwitchedGridWorldEnv
 from segmentcentroid.planner.value_iteration import ValueIterationPlanner
 from segmentcentroid.tfmodel.GridWorldModel import GridWorldModel
+from segmentcentroid.inference.HDQN import *
 import tensorflow as tf
 import copy
 
@@ -71,7 +72,8 @@ for i in range(m.k):
     # policy_hash maps states to actions, trans_hash maps states to option termination
     # probabilities, for THAT option.
     for s in states:
-
+        # Not a problem here because trajectories are defined to be 11 x 11 with one-hot for state filled, but in HDQN clearly
+        # that is not the case
         t = np.zeros(shape=(gmap.shape[0],gmap.shape[1]))
 
         t[s[0],s[1]] = 1
@@ -92,3 +94,7 @@ for i in range(m.k):
         trans_hash[s] = np.ravel(m.evalpsi(i, [(t, actions[1,:])]))
 
     g.visualizePolicy(policy_hash, trans_hash, blank=True, filename="resources/results/exp_stuff"+str(i)+".png")
+
+# Train meta-controller with learned options
+hdqn = TabularHDQN(g, (gmap.shape[0],gmap.shape[1]), 4, m)
+hdqn.train(5000, 50)

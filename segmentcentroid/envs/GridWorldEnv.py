@@ -25,6 +25,7 @@ class GridWorldEnv(AbstractEnv):
     GOAL_REWARD = +1
     PIT_REWARD = -1
     STEP_REWARD = -.001
+    INVALID_ACTION_REWARD = -0.05 # ASHWIN ADDED THIS
 
     #takes in a 2d integer map coded by the first line of comments
     def __init__(self, gmap, noise=0.1):
@@ -108,6 +109,9 @@ class GridWorldEnv(AbstractEnv):
             possibleA = np.append(possibleA, [a])
         return possibleA
 
+    # ASHWIN ADDED THIS
+    def possibleActionsNew(self, s=None):
+        return np.array( [ [a] for a in range(self.actions_num)] )
 
     """
     This function initializes the envioronment
@@ -135,8 +139,19 @@ class GridWorldEnv(AbstractEnv):
     """
     def play(self, a):
         #throws an error if you are stupid
-        if a not in self.possibleActions():
+        # if a not in self.possibleActions():
+        #     raise ValueError("Invalid Action!!") # ASHWIN COMMENTED THIS OUT
+
+        # ASHWIN NOTE: How to deal with invalid actions when learning?
+        # I could simply allow them and give them a negative reward...
+        # but the issue there is that this would make the agent learn
+        # which actions are valid and invalid as well rather than just
+        # learn what is best actions given maze topology, though honestly
+        # this might be OK
+
+        if a not in self.possibleActionsNew():
             raise ValueError("Invalid Action!!")
+
 
         #copies states to make sure no concurrency issues
         r = self.STEP_REWARD
@@ -147,7 +162,8 @@ class GridWorldEnv(AbstractEnv):
             a = np.random.choice(self.possibleActions())
 
         # Take action
-        ns = self.state + self.ACTIONS[a]
+        # ns = self.state + self.ACTIONS[a] ASHWIN COMMENTED THIS OUT
+        ns = self.state + self.ACTIONS[a].flatten() # ASHWIN ADDED TIS
 
         # Check bounds on state values
         if (ns[0] < 0 or ns[0] == self.ROWS or
@@ -163,6 +179,10 @@ class GridWorldEnv(AbstractEnv):
             r = self.GOAL_REWARD
         if self.map[ns[0], ns[1]] == self.PIT:
             r = self.PIT_REWARD
+        if (ns[0] < 0 or ns[0] == self.ROWS or
+            ns[1] < 0 or ns[1] == self.COLS or
+            self.map[ns[0], ns[1]] == self.BLOCKED): # ASHWIN ADDED THIS
+            r = self.INVALID_ACTION_REWARD
 
         self.state = ns
         self.time = self.time + 1
@@ -267,7 +287,7 @@ class GridWorldEnv(AbstractEnv):
             dx = action[0]*0.5
             dy = action[1]*0.5
 
-            ax.arrow(state[1], state[0], dy, dx, head_width=0.1, fc=(1,0,0), ec=(100,0,0))
+            ax.arrow(state[1], state[0], dy, dx, head_width=0.1, fc=(alpha,0,0), ec=(alpha,0,0))
 
 
         if filename == None:
