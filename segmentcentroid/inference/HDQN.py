@@ -157,6 +157,7 @@ class HDQN(object):
 
 
     def tieWeights(self):
+      print(self.evalNetwork)
       for i, v in enumerate(self.evalNetwork['weights']):
         self.sess.run(tf.assign(v, self.network['weights'][i]))
 
@@ -271,8 +272,8 @@ class HDQN(object):
 
             print("Episode", episode, (reward, episodeLength-remaining_time, epsilon))
 
-            if episode % self.update_frequency == (self.update_frequency - 1):
-              self.tieWeights()
+            # if episode % self.update_frequency == (self.update_frequency - 1): # ASHWIN COMMENTED THIS OUT: Seems like tieWeights() should only be called when using LinearDQN, TODO: Figure out what is going on here
+            #   self.tieWeights()
 
             if episode % self.eval_frequency == (self.eval_frequency-1):
               total_return = self.evalValueFunction(episodeLength, self.eval_trials)
